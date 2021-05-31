@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/DirectionalLightComponent.h"
 #include "weather.generated.h"
 
 UCLASS()
@@ -22,5 +23,14 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere)
+		UDirectionalLightComponent* directionalLightComponent;
+
+	UPROPERTY(EditAnywhere)
+		float LightSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Sky Sphere")
+		TSubclassOf<AActor> SkySphere;
 
 };
