@@ -10,11 +10,34 @@ Aweather::Aweather()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-	directionalLightComponent = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("LightSource"));
-	directionalLightComponent->SetMobility(EComponentMobility::Movable);  //�ƶ���
+	//directionalLightComponent = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("LightSource"));
+	//directionalLightComponent->SetMobility(EComponentMobility::Movable);  
+	//directionalLightComponent->AttachTo(RootComponent);
+	
+
+	FCanRain = true;
+	AudioManager = nullptr;
+	//粒子材料
+	P_Rain = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("P_Rain"));
+	P_Rain->SetupAttachment(RootComponent);
+
+	ConstructorHelpers::FObjectFinder<UParticleSystem>myParticle(TEXT("ParticleSystem'/Game/assert/weather/P_Rain.P_Rain'"));
+	if (myParticle.Succeeded())
+	{
+		P_Rain->SetTemplate(myParticle.Object);//添加粒子资源
+	}
+	P_Rain->SetActive(false);
+
+
+	//
+	ConstructorHelpers::FObjectFinder<USoundCue>mySound(TEXT("SoundCue'/Game/assert/weather/Sound_Rain_Cue.Sound_Rain_Cue'"));
+	Sound_Rain = mySound.Object;
+
+
+
 
 	//LightSource = directionalLightComponent;
-	LightSpeed = 20.0f;
+	//LightSpeed = 20.0f;
 
 }
 
@@ -22,6 +45,8 @@ Aweather::Aweather()
 void Aweather::BeginPlay()
 {
 	Super::BeginPlay();
+	RainController(FCanRain, 0.4);
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeCount, this, &Aweather::TimeControl, 4.0f, true, 4.0f);
 	
 }
 
@@ -29,12 +54,31 @@ void Aweather::BeginPlay()
 void Aweather::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	FRotator LightRotate = {0,LightSpeed,0};
-	AddActorWorldRotation(LightRotate);
 	
-	//GetClass()->GetName();
-	/*auto SkySphereAsset = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("StaticMesh'/Engine/EngineSky/BP_Sky_Sphere'"));
-	SkySphereAsset.*/
+}
+void Aweather::TimeControl()
+{
+	RainController(!FCanRain, 0.4);
+}
+
+void Aweather::RainController(bool CanRain, float BuferTime)
+{
+	if (CanRain)
+	{ 
+		P_Rain->SetActive(true);
+		if (Sound_Rain)
+		{
+			AudioManager = UGameplayStatics::SpawnSoundAttached(Sound_Rain, P_Rain);
+		}
+	}
+	else
+	{ 
+		P_Rain->SetActive(false);
+		if (AudioManager)
+		{
+			AudioManager->Stop();
+		}
+	}
+	FCanRain = !FCanRain;
 }
 
